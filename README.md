@@ -46,13 +46,13 @@ Different MCP clients require slightly different setups. Follow the instructions
 1. Use the shortcut `⌘ Shift P` to search for `MCP:Add Server`.
 2. Select `HTTP`.
 3. Paste the server url `https://mcp.figma.com/mcp` in the search bar. Then hit `Enter`.
-4. When you're prompted for a server ID, enter `figma`.
+4. When you're prompted for a server ID, enter `com.figma.mcp/mcp`.
 5. Select whether you want to add this server globally or only for the current workspace. Once confirmed, you'll see a configuration like this in your `mcp.json` file:
 
 ```json
 {
   "servers": {
-    "figma": {
+    "com.figma.mcp/mcp": {
       "type": "http",
       "url": "https://mcp.figma.com/mcp"
     }
@@ -95,7 +95,7 @@ The plugin includes:
 ```json
 {
   "mcpServers": {
-    "figma": {
+    "com.figma.mcp/mcp": {
       "url": "https://mcp.figma.com/mcp"
     }
   }
@@ -124,7 +124,7 @@ Learn more about Anthropic's [Claude Code Plugins](https://claude.com/blog/claud
 1. Open your terminal and run:
 
 ```bash
-claude mcp add --transport http figma https://mcp.figma.com/mcp
+claude mcp add --transport http com.figma.mcp/mcp https://mcp.figma.com/mcp
 ```
 
 2. Use the following commands to check MCP settings and manage servers:
@@ -175,7 +175,7 @@ If you're using a different editor or tool, check its documentation to confirm i
 ```json
 {
   "mcpServers": {
-    "figma": {
+    "com.figma.mcp/mcp": {
       "url": "https://mcp.figma.com/mcp"
     }
   }
