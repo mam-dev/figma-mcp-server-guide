@@ -52,7 +52,7 @@ figma.closePlugin()
 
 ## Color Palette
 
-FigJam sticky notes use a fixed palette of 10 colors. Set via the `fills` property.
+FigJam sticky notes use a fixed palette of 10 colors. Set via the `fills` property. For the canonical palette across all FigJam node types, see [figjam-colors](figjam-colors.md).
 
 **CRITICAL**: Use `hex/255` notation (e.g. `0xA8/255`) for exact palette matching — rounded decimals cause FigJam to treat the color as "custom" instead of a palette color.
 
@@ -180,11 +180,15 @@ const colors = [
 ]
 const spacing = 64
 
-// Pass 1: Create all stickies and set content
+// Pass 1: Create all stickies and set content.
+// Every sticky uses the same default font, so load it once before the loop
+// rather than awaiting per-iteration.
+const probe = figma.createSticky()
+await figma.loadFontAsync(probe.text.fontName)
+probe.remove()
 const stickies = []
 for (let i = 0; i < labels.length; i++) {
   const sticky = figma.createSticky()
-  await figma.loadFontAsync(sticky.text.fontName)
   sticky.text.characters = labels[i]
   sticky.fills = [{ type: 'SOLID', color: colors[i % colors.length] }]
   stickies.push(sticky)
@@ -212,11 +216,15 @@ const items = ['Task A', 'Task B', 'Task C', 'Task D', 'Task E', 'Task F']
 const cols = 3
 const spacing = 64
 
-// Pass 1: Create all stickies and set content
+// Pass 1: Create all stickies and set content.
+// All stickies share the same default font — load once outside the loop
+// instead of awaiting per-iteration.
+const probe = figma.createSticky()
+await figma.loadFontAsync(probe.text.fontName)
+probe.remove()
 const stickies = []
 for (let i = 0; i < items.length; i++) {
   const sticky = figma.createSticky()
-  await figma.loadFontAsync(sticky.text.fontName)
   sticky.text.characters = items[i]
   sticky.fills = [{ type: 'SOLID', color: h(0xff, 0xe2, 0x99) }] // Yellow #FFE299
   stickies.push(sticky)
@@ -282,6 +290,6 @@ Please see [position-figjam-nodes](position-figjam-nodes.md) - "Positioning Node
 
 - **Always wrap code in an async IIFE:** `(async () => { ... })();`
 - **Always call `figma.closePlugin()`** at the end of every code path.
-- **Load fonts** before setting `sticky.text.characters`.
+- **Follow the [canonical text-edit recipe](../../figma-use/references/gotchas.md#canonical-text-edit-recipe-font-load--await--mutate--return-ids)** for `sticky.text.characters` — load `sticky.text.fontName` (FigJam sticky default is `Inter Medium`, not Inter Regular), `await`, mutate, return IDs.
 - **Use node IDs** from the user message, not `figma.currentPage.selection`.
 - **Verify changes** by logging before/after values and exporting images when supported.

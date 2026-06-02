@@ -4,7 +4,7 @@
 
 ## Critical: Load Fonts First
 
-**Always load fonts before modifying text.** This is required or operations will fail.
+Follow the [canonical text-edit recipe](../../figma-use/references/gotchas.md#canonical-text-edit-recipe-font-load--await--mutate--return-ids) — load font → `await` → mutate → return affected IDs. Skipping the load throws `Cannot write to node with unloaded font "<family> <style>"`. Inter is preloaded in most environments; every other family (and every Inter style you haven't already loaded) still needs an explicit `loadFontAsync`.
 
 ```javascript
 // Load a single font
@@ -45,7 +45,12 @@ figma.closePlugin()
 
 ## Basic Properties
 
+Follows the [canonical text-edit recipe](../../figma-use/references/gotchas.md#canonical-text-edit-recipe-font-load--await--mutate--return-ids) — load every (family, style) you're about to assign (including the NEW font when changing `fontName`) before any text mutation.
+
 ```javascript
+// Required for any font, not just Inter
+await figma.loadFontAsync({ family: 'Inter', style: 'Bold' })
+
 // Text content
 textNode.characters = 'Hello, World!'
 
@@ -61,7 +66,7 @@ textNode.fills = [{ type: 'SOLID', color: { r: 0x1e / 255, g: 0x1e / 255, b: 0x1
 
 ### Text Color in FigJam
 
-**CRITICAL**: When editing text in FigJam board content (templates, brainstorms, retros, or any generated content), always use **Charcoal (#1E1E1E)** as the text color unless the user has specifically requested different colors. Use `hex/255` notation for exact palette matching:
+**CRITICAL**: When editing text in FigJam board content (templates, brainstorms, retros, or any generated content), always use **Charcoal (#1E1E1E)** as the text color unless the user has specifically requested different colors. Use `hex/255` notation for exact palette matching. For non-text node colors and the canonical palette across all FigJam node types, see [figjam-colors](figjam-colors.md).
 
 ```javascript
 // Charcoal — default for all FigJam text
@@ -283,6 +288,11 @@ To search and replace text content across many nodes:
 
 ```javascript
 ;(async () => {
+  // Skip invisible instance interiors — hidden component variants don't need
+  // text replacement, and the flag makes findAllWithCriteria hundreds of
+  // times faster on large boards.
+  figma.skipInvisibleInstanceChildren = true
+
   const searchText = 'Sign Up'
   const replaceText = 'Register'
   const caseSensitive = false

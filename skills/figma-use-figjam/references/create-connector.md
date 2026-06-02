@@ -138,7 +138,7 @@ figma.closePlugin()
 
 ## Color Presets
 
-Connectors use the same FigJam color palette as shapes. The line color is set via `strokes`. The connector's text label has its own background and its color does **not** change when the line color changes — only set the stroke.
+Connectors use a 13-color stroke palette — the same hue family used by `createShapeWithText`. The line color is set via `strokes`. The connector's text label has its own background and its color does **not** change when the line color changes — only set the stroke. For the canonical palette across all FigJam node types, see [figjam-colors](figjam-colors.md).
 
 **CRITICAL**: Use `hex/255` notation (e.g. `0x66/255`) for exact palette matching — rounded decimals cause FigJam to treat the color as "custom".
 
@@ -262,10 +262,14 @@ const spacing = 80
 const totalWidth = steps.length * shapeW + (steps.length - 1) * spacing
 const startX = 0
 
+// Every shape uses the same default font — load once before the loop
+// rather than awaiting per-iteration.
+const probe = figma.createShapeWithText()
+await figma.loadFontAsync(probe.text.fontName)
+probe.remove()
 const nodes = []
 for (let i = 0; i < steps.length; i++) {
   const shape = figma.createShapeWithText()
-  await figma.loadFontAsync(shape.text.fontName)
   shape.text.characters = steps[i]
   shape.resize(shapeW, shapeH)
   shape.fills = [{ type: 'SOLID', color: preset.fill }]

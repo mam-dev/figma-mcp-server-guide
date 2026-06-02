@@ -10,6 +10,8 @@ This skill contains FigJam-specific context for the `use_figma` MCP tool. The [f
 
 **Always pass `skillNames: "figma-use-figjam"` when calling `use_figma` for FigJam operations.** This is a logging parameter used to track skill usage — it does not affect execution.
 
+> **FigJam URL is `figma.com/board/...`.** Do NOT call `figma.createPage()` in FigJam — it throws `TypeError: figma.createPage no such property 'createPage' on the figma global object`. `createPage()` is a Design-file API only (`figma.com/design/...`). FigJam files have a single implicit page; organize content with sections instead (see [create-section](references/create-section.md)).
+
 ## Inspecting FigJam Files
 
 **`get_figjam` is the inspection tool for FigJam files.** It returns the full node tree as XML, including IDs of pages, sections, stickies, connectors, and other nodes you need to reference in subsequent `use_figma` calls.
@@ -33,6 +35,16 @@ ToolSearch query="select:use_figma,get_figjam,get_screenshot,get_metadata,create
 
 Six sequential `ToolSearch` calls is six round trips before any work happens. One batched call is one round trip.
 
+## Text Mutations — Canonical Recipe
+
+Every FigJam text mutation (sticky/shape/label/table cell/connector text, standalone text nodes) follows the same recipe as Design files: load font → `await` → mutate → return affected IDs. Skipping the load throws `Cannot write to node with unloaded font "<family> <style>"`. See [figma-use → gotchas.md → Canonical text-edit recipe](../figma-use/references/gotchas.md#canonical-text-edit-recipe-font-load--await--mutate--return-ids). FigJam-specific note: sublayer defaults vary (sticky → `Inter Medium`, shape → `Inter Medium`, connector → invalid until set), so always load from `node.text.fontName` rather than hardcoding `{ family: 'Inter', style: 'Regular' }`.
+
+## Adding Images to a FigJam Board
+
+**`upload_assets` is the ONLY supported way to add images to a FigJam file.** Do NOT use `figma.createImage()` or `figma.createImageAsync()` from inside `use_figma` — they are unsupported as image-upload entry points in FigJam. Call `upload_assets` with the FigJam `fileKey`; the tool returns single-use upload URLs that you POST raw image bytes to, and the image is committed and placed automatically. Pass `nodeId` (with `count: 1`) to attach the upload to an existing FigJam node as a fill; omit `nodeId` to drop the image onto the board as a new layer.
+
+For the full request/response shape, see [figma-use → api-reference.md → Images](../figma-use/references/api-reference.md#images).
+
 ## Reference Docs
 
 - [plan-board-content](references/plan-board-content.md) - Read this for any board content request — board template, retro, brainstorm, ice breaker, meeting board, scaffold
@@ -49,3 +61,4 @@ Six sequential `ToolSearch` calls is six round trips before any work happens. On
 - [edit-text](references/edit-text.md) — Edit existing text nodes (font loading, styled ranges, find/replace, FigJam Charcoal default color)
 - [create-label](references/create-label.md) — Create and configure FigJam label nodes (small numbered/lettered circle callout markers, sequences, positioning)
 - [batch-modify](references/batch-modify.md) — Patterns for modifying many existing nodes at once (bulk style changes, repositioning, property updates)
+- [figjam-colors](references/figjam-colors.md) — Canonical FigJam color palettes for every node type (sticky, section, connector, shape, label) plus the `hex/255` notation rule and the `h()` helper
